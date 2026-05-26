@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "location": { "type": "string" }
+      },
+      "required": ["name", "email"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Store product",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "image": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "isHero": { "type": "boolean" }
+      },
+      "required": ["name", "price", "category", "image"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product category",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "Banner": {
+      "title": "Banner",
+      "description": "Hero banner image",
+      "type": "object",
+      "properties": {
+        "image": { "type": "string" }
+      },
+      "required": ["image"]
+    },
+    "Wishlist": {
+      "title": "Wishlist",
+      "description": "User wishlist",
+      "type": "object",
+      "properties": {
+        "products": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["products"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Store products"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Product categories"
+    },
+    "/banners/{bannerId}": {
+      "schema": "Banner",
+      "description": "Hero banners"
+    },
+    "/wishlists/{userId}": {
+      "schema": "Wishlist",
+      "description": "User wishlists"
+    }
+  }
+}

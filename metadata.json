@@ -1,0 +1,8 @@
+{
+  "name": "Fanzio",
+  "description": "A modern football jersey e-commerce website with a black and white glassmorphism theme.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

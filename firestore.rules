@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Products, Categories, Banners: Everyone can read, admins can write
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Users and Wishlists: Only owners can read/write, Admins can read/write all users
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    
+    match /wishlists/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
