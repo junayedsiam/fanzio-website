@@ -60,7 +60,7 @@ export default function LoginPage() {
         <div className="mb-8">
           <Logo className="w-16 h-16 mx-auto mb-4" />
           <h1 className="text-3xl font-bold">Welcome Back</h1>
-          <p className="text-white/50">
+          <p className="text-black/50">
             Continue with Google
           </p>
         </div>
@@ -74,7 +74,7 @@ export default function LoginPage() {
         <button
           onClick={handleGoogleLogin}
           disabled={isSubmitting || (loading && !!auth.currentUser)}
-          className="w-full bg-white text-black py-3 rounded flex items-center justify-center gap-2 font-medium"
+          className="w-full bg-black text-white py-3 rounded flex items-center justify-center gap-2 font-medium"
         >
 
           {isSubmitting || (loading && !!auth.currentUser) ? (

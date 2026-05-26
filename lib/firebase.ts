@@ -1,6 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, initializeFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -14,16 +13,6 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
+// Firebase Auth is kept for login/signup
+// All data (products, categories, banners, users) is now stored in MongoDB
 export const auth = getAuth(app);
-
-let firestoreDb;
-try {
-    firestoreDb = initializeFirestore(app, {
-        experimentalForceLongPolling: true
-    });
-} catch (e) {
-    // If already initialized (e.g., during Next.js hot reload)
-    firestoreDb = getFirestore(app);
-}
-
-export const db = firestoreDb;

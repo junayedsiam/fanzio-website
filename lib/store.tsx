@@ -1,22 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Product, Category, HeroBanner } from './data';
-import { auth, db } from './firebase';
-
-import {
-  onAuthStateChanged,
-  User as FirebaseUser
-} from 'firebase/auth';
-
-import {
-  doc,
-  onSnapshot,
-  collection,
-  setDoc,
-  updateDoc,
-  query
-} from 'firebase/firestore';
+import { auth } from './firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 type User = {
   name: string;
@@ -43,184 +30,120 @@ type StoreContextType = {
   toggleWishlist: (productId: string) => void;
 
   loading: boolean;
+
+  /** Call after any admin mutation to re-fetch all data */
+  refreshData: () => Promise<void>;
 };
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
+// Admin email — controls which Firebase user gets the 'admin' role
+const ADMIN_EMAIL = 'junayedhossain.pro@gmail.com';
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [heroBanners, setHeroBanners] = useState<HeroBanner[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
-
   const [loading, setLoading] = useState(true);
 
   /* =========================
-      AUTH (CLEAN + FAST)
+      FETCH PUBLIC DATA
   ========================= */
+  const fetchData = useCallback(async () => {
+    try {
+      const [productsRes, categoriesRes, bannersRes] = await Promise.all([
+        fetch('/api/products'),
+        fetch('/api/categories'),
+        fetch('/api/banners'),
+      ]);
 
+      const [productsData, categoriesData, bannersData] = await Promise.all([
+        productsRes.json(),
+        categoriesRes.json(),
+        bannersRes.json(),
+      ]);
+
+      setProducts(productsData.products ?? []);
+      setCategories(categoriesData.categories ?? []);
+      setHeroBanners(bannersData.banners ?? []);
+    } catch (err) {
+      console.error('Failed to fetch data from MongoDB:', err);
+    }
+  }, []);
+
+  // Load products / categories / banners on mount
   useEffect(() => {
-    let userDocUnsub: (() => void) | null = null;
+    fetchData();
+  }, [fetchData]);
 
+  /* =========================
+      AUTH (Firebase Auth only)
+  ========================= */
+  useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       try {
         setLoading(true);
 
-        // ❌ logout case
         if (!firebaseUser) {
           setUser(null);
           setWishlist([]);
-
-          if (userDocUnsub) {
-            userDocUnsub();
-            userDocUnsub = null;
-          }
-
           setLoading(false);
           return;
         }
 
-        const userRef = doc(db, 'users', firebaseUser.uid);
+        // Try to get the user from MongoDB
+        const res = await fetch(`/api/users/${firebaseUser.uid}`);
 
-        // ❌ cleanup old listener
-        if (userDocUnsub) {
-          userDocUnsub();
+        if (res.ok) {
+          const data = await res.json();
+          const userData = data.user as User;
+
+          // Ensure admin email always has the admin role
+          if (firebaseUser.email === ADMIN_EMAIL && userData.role !== 'admin') {
+            userData.role = 'admin';
+            // Persist the fix
+            fetch(`/api/users/${firebaseUser.uid}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ role: 'admin' }),
+            }).catch(console.error);
+          }
+
+          setUser(userData);
+        } else if (res.status === 404) {
+          // First time login — create the user document in MongoDB
+          const newUser: User = {
+            name: firebaseUser.displayName || '',
+            email: firebaseUser.email || '',
+            phone: '',
+            location: '',
+            role: firebaseUser.email === ADMIN_EMAIL ? 'admin' : 'user',
+          };
+
+          await fetch(`/api/users/${firebaseUser.uid}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newUser),
+          });
+
+          setUser(newUser);
         }
 
-        // ✅ stable Firestore listener
-        userDocUnsub = onSnapshot(userRef, async (snap) => {
-          if (snap.exists()) {
-            const data = snap.data() as User;
-
-            // 🔥 auto admin fix (safe)
-            if (
-              firebaseUser.email === 'junayedhossain.pro@gmail.com' &&
-              data.role !== 'admin'
-            ) {
-              updateDoc(userRef, { role: 'admin' }).catch(console.error);
-              data.role = 'admin';
-            }
-
-            setUser(data);
-            setLoading(false);
-          } else {
-            // ❌ create user only once
-            const assignedRole =
-              firebaseUser.email === 'junayedhossain.pro@gmail.com'
-                ? 'admin'
-                : 'user';
-
-            const newUser: User = {
-              name: firebaseUser.displayName || '',
-              email: firebaseUser.email || '',
-              phone: '',
-              location: '',
-              role: assignedRole
-            };
-
-            try {
-              await setDoc(userRef, newUser);
-              setUser(newUser);
-            } catch (err) {
-              console.error('User create error:', err);
-            }
-
-            setLoading(false);
-          }
-        });
-
+        setLoading(false);
       } catch (err) {
         console.error('AUTH ERROR:', err);
         setLoading(false);
       }
     });
 
-    return () => {
-      unsubAuth();
-      if (userDocUnsub) userDocUnsub();
-    };
+    return () => unsubAuth();
   }, []);
 
   /* =========================
-      PRODUCTS (FAST)
+      WISHLIST (local only)
   ========================= */
-
-  useEffect(() => {
-    const q = query(collection(db, 'products'));
-
-    const unsub = onSnapshot(q, (snapshot) => {
-      const items: Product[] = snapshot.docs.map((d) => {
-        const data = d.data();
-
-        return {
-          id: d.id,
-          name: data.name || '',
-          price: Number(data.price) || 0,
-          image: data.image || '',
-          category: data.category || '',
-          description: data.description || '',
-          isHero: !!data.isHero
-        };
-      });
-
-      setProducts(items);
-    });
-
-    return () => unsub();
-  }, []);
-
-  /* =========================
-      CATEGORIES
-  ========================= */
-
-  useEffect(() => {
-    const q = query(collection(db, 'categories'));
-
-    const unsub = onSnapshot(q, (snapshot) => {
-      const items: Category[] = snapshot.docs.map((d) => {
-        const data = d.data();
-
-        return {
-          id: d.id,
-          name: data.name || ''
-        };
-      });
-
-      setCategories(items);
-    });
-
-    return () => unsub();
-  }, []);
-
-  /* =========================
-      BANNERS
-  ========================= */
-
-  useEffect(() => {
-    const q = query(collection(db, 'banners'));
-
-    const unsub = onSnapshot(q, (snapshot) => {
-      const items: HeroBanner[] = snapshot.docs.map((d) => {
-        const data = d.data();
-
-        return {
-          id: d.id,
-          image: data.image || ''
-        };
-      });
-
-      setHeroBanners(items);
-    });
-
-    return () => unsub();
-  }, []);
-
-  /* =========================
-      WISHLIST (LOCAL ONLY)
-  ========================= */
-
   const toggleWishlist = (productId: string) => {
     setWishlist((prev) =>
       prev.includes(productId)
@@ -234,20 +157,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         setUser,
-
         products,
         setProducts,
-
         categories,
         setCategories,
-
         heroBanners,
         setHeroBanners,
-
         wishlist,
         toggleWishlist,
-
-        loading
+        loading,
+        refreshData: fetchData,
       }}
     >
       {children}
@@ -257,10 +176,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
 export function useStore() {
   const context = useContext(StoreContext);
-
   if (!context) {
     throw new Error('useStore must be used within StoreProvider');
   }
-
   return context;
 }

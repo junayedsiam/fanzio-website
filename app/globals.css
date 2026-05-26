@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #050505;
-  --color-foreground: #ffffff;
-  
-  --color-glass-bg: rgba(255, 255, 255, 0.05);
-  --color-glass-border: rgba(255, 255, 255, 0.1);
-  --color-glass-hover: rgba(255, 255, 255, 0.08);
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+
+  --color-glass-bg: rgba(0, 0, 0, 0.04);
+  --color-glass-border: rgba(0, 0, 0, 0.09);
+  --color-glass-hover: rgba(0, 0, 0, 0.07);
 }
 
 body {
@@ -24,7 +24,7 @@ body {
 
 .glass-hover:hover {
   background: var(--color-glass-hover);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 .no-scrollbar::-webkit-scrollbar {
