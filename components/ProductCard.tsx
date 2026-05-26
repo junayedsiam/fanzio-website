@@ -2,7 +2,7 @@ import { Product } from "@/lib/data";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useStore } from "@/lib/store";
 
 export function ProductCard({ product }: { product: Product }) {
@@ -29,7 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
         href={`/product/${product?.id || ""}`}
         className="flex-grow flex flex-col cursor-pointer"
       >
-        <div className="relative aspect-[3/4] overflow-hidden w-full bg-white/5">
+        <div className="relative aspect-[3/4] overflow-hidden w-full bg-black/5">
           {product?.image && (
             <Image
               src={product.image}
@@ -41,7 +41,7 @@ export function ProductCard({ product }: { product: Product }) {
           )}
 
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-            <span className="bg-white text-black px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest">
+            <span className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest">
               View Product
             </span>
           </div>
@@ -53,7 +53,7 @@ export function ProductCard({ product }: { product: Product }) {
           </h3>
 
           <div className="mt-auto pt-2">
-            <span className="font-semibold text-white">
+            <span className="font-semibold text-black">
               ৳{product?.price || 0}
             </span>
           </div>
@@ -65,8 +65,8 @@ export function ProductCard({ product }: { product: Product }) {
           onClick={handleWishlist}
           className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
             isWishlisted
-              ? "text-black bg-white shadow-lg"
-              : "text-white glass hover:bg-white/20"
+              ? "text-white bg-black shadow-lg"
+              : "text-black glass hover:bg-black/20"
           }`}
         >
           <Heart

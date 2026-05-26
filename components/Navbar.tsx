@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Heart, User, Search, Menu, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useStore } from '@/lib/store';
 import { Logo } from './Logo';
@@ -68,7 +68,7 @@ export function Navbar() {
     if (!searchQuery.trim()) return null;
 
     return (
-      <div className="absolute top-full right-0 mt-3 w-[280px] sm:w-[320px] bg-white rounded-2xl shadow-2xl p-2 z-[70] border flex flex-col gap-1 text-black">
+      <div className="absolute top-full right-0 mt-3 w-[280px] sm:w-[320px] bg-black rounded-2xl shadow-2xl p-2 z-[70] border flex flex-col gap-1 text-black">
         {searchResults.length > 0 ? (
           searchResults.map((p) => (
             <Link
@@ -114,7 +114,7 @@ export function Navbar() {
   ========================= */
   return (
     <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-7xl">
-      <div className="bg-black/20 backdrop-blur-2xl border border-white/10 rounded-full h-16 flex items-center justify-between px-4 sm:px-6">
+      <div className="bg-black/20 backdrop-blur-2xl border border-black/10 rounded-full h-16 flex items-center justify-between px-4 sm:px-6">
 
         {/* LEFT */}
         <div className="flex items-center gap-4">
@@ -125,7 +125,7 @@ export function Navbar() {
               onClick={() =>
                 setIsMobileCategoryOpen((prev) => !prev)
               }
-              className="p-2 text-white/70"
+              className="p-2 text-black/70"
             >
               {isMobileCategoryOpen ? (
                 <X className="w-5 h-5" />
@@ -140,18 +140,18 @@ export function Navbar() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 mt-3 w-56 bg-black rounded-2xl p-2 border border-white/10"
+                  className="absolute top-full left-0 mt-3 w-56 bg-white rounded-2xl p-2 border border-black/10"
                 >
                   <Link
                     href="/wishlist"
-                    className="block px-4 py-2 text-white"
+                    className="block px-4 py-2 text-black"
                   >
                     ❤️ Wishlist
                   </Link>
 
                   <button
                     onClick={() => router.push('/')}
-                    className="block w-full text-left px-4 py-2 text-white"
+                    className="block w-full text-left px-4 py-2 text-black"
                   >
                     All Products
                   </button>
@@ -167,7 +167,7 @@ export function Navbar() {
                           )}`
                         );
                       }}
-                      className="block w-full text-left px-4 py-2 text-white"
+                      className="block w-full text-left px-4 py-2 text-black"
                     >
                       {c.name}
                     </button>
@@ -195,7 +195,7 @@ export function Navbar() {
             className="md:hidden"
             onClick={() => setIsMobileSearchOpen(true)}
           >
-            <Search className="w-5 h-5 text-white/70" />
+            <Search className="w-5 h-5 text-black/70" />
           </button>
 
           {/* DESKTOP SEARCH */}
@@ -210,18 +210,18 @@ export function Navbar() {
               }
               onFocus={() => setIsDesktopFocus(true)}
               placeholder="Search..."
-              className="bg-black/40 text-white px-4 py-2 rounded-full w-48 focus:w-64 transition-all"
+              className="bg-black/40 text-black px-4 py-2 rounded-full w-48 focus:w-64 transition-all"
             />
 
             {isDesktopFocus && <SearchDropdown />}
           </div>
 
           <Link href="/profile">
-            <User className="w-5 h-5 text-white/70" />
+            <User className="w-5 h-5 text-black/70" />
           </Link>
 
           <Link href="/wishlist">
-            <Heart className="w-5 h-5 text-white/70" />
+            <Heart className="w-5 h-5 text-black/70" />
           </Link>
         </div>
       </div>
@@ -240,7 +240,7 @@ export function Navbar() {
               className="mt-10 w-[95%] max-w-sm"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-white rounded-full flex items-center px-4 h-14">
+              <div className="bg-black rounded-full flex items-center px-4 h-14">
                 <Search className="text-black/50" />
                 <input
                   autoFocus

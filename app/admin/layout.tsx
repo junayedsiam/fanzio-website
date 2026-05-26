@@ -26,8 +26,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (loading || !isAuthorized) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
-        <Loader2 className="w-12 h-12 animate-spin text-white/50 mb-4" />
-        <p className="text-white/50 font-medium tracking-wide">Verifying access...</p>
+        <Loader2 className="w-12 h-12 animate-spin text-black/50 mb-4" />
+        <p className="text-black/50 font-medium tracking-wide">Verifying access...</p>
       </div>
     );
   }
